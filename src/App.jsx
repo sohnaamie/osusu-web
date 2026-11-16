@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from './api';
 import Groups from './Groups';
 import Group from './Group';
+import { card, input, label, btn, btnGhost, errorBox } from './ui';
 
 export default function App() {
   const [email, setEmail] = useState('');
@@ -32,37 +33,38 @@ export default function App() {
 
   if (loggedIn) {
     return (
-      <>
-        <header className="app-header">
-          <strong>Osusu</strong>
-          <button className="btn btn-ghost" onClick={logout}>Logout</button>
+      <div className="min-h-screen bg-slate-100 text-slate-900">
+        <header className="sticky top-0 z-10 flex items-center justify-between bg-brand-700 px-4 py-3 text-white">
+          <strong className="text-lg">Osusu</strong>
+          <button className={btnGhost} onClick={logout}>Logout</button>
         </header>
-        <main className="container">
+        <main className="mx-auto grid max-w-3xl gap-4 p-4">
           {selected
             ? <Group id={selected} onBack={() => setSelected(null)} />
             : <Groups onOpen={setSelected} />}
         </main>
-      </>
+      </div>
     );
   }
 
   return (
-    <main className="auth">
-      <form className="card" onSubmit={login}>
+    <main className="grid min-h-screen place-items-center bg-slate-100 p-4 text-slate-900">
+      <form className={`${card} w-full max-w-sm`} onSubmit={login}>
         <div>
-          <h1>Osusu</h1>
-          <p className="muted">Manage your savings group</p>
+          <h1 className="text-2xl font-bold text-brand-800">Osusu</h1>
+          <p className="text-sm text-slate-500">Manage your savings group</p>
         </div>
-        <label className="field">Email
-          <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label className={label}>Email
+          <input className={input} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
-        <label className="field">Password
-          <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <label className={label}>Password
+          <input className={input} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
-        {error && <p className="error">{error}</p>}
-        {validationErrors.map((m, i) => <p className="error" key={i}>{m}</p>)}
-        <button className="btn">Login</button>
+        {error && <p className={errorBox}>{error}</p>}
+        {validationErrors.map((m, i) => <p className={errorBox} key={i}>{m}</p>)}
+        <button className={btn}>Login</button>
       </form>
     </main>
   );
+
 }

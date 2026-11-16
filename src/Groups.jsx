@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
+import { card, input, label, btn, errorBox, row, badge } from './ui'
 
 function message(err) {
   return [err.message, ...Object.values(err.errors ?? {}).flat()].filter(Boolean).join(' ');
@@ -60,59 +61,59 @@ export default function Groups({ onOpen }) {
   }
 
   return (
-    <>
-      <section className="card">
-        <h2>My groups</h2>
-        {error && <p className="error">{error}</p>}
-        {groups.length === 0 && <p className="muted">No groups yet. Create your first one below.</p>}
-        {groups.map((g) => (
-          <div className="row" key={g.id}>
-            <div>
-              <button className="name" onClick={() => onOpen(g.id)}>{g.name}</button>
-              <div className="muted">{g.payout_type} · {g.frequency}</div>
-            </div>
-            <span className={`badge ${g.status}`}>{g.status}</span>
+  <>
+    <section className={card}>
+      <h2 className="text-xl font-bold">My groups</h2>
+      {error && <p className={errorBox}>{error}</p>}
+      {groups.length === 0 && <p className="text-sm text-slate-500">No groups yet. Create your first one below.</p>}
+      {groups.map((g) => (
+        <div className={row} key={g.id}>
+          <div>
+            <button className="font-semibold text-brand-700 hover:underline" onClick={() => onOpen(g.id)}>{g.name}</button>
+            <div className="text-sm text-slate-500">{g.payout_type} · {g.frequency}</div>
           </div>
-        ))}
-      </section>
-
-      <form className="card" onSubmit={create}>
-        <h3>Create a group</h3>
-        <div className="form-grid">
-          <label className="field">Name
-            <input name="name" value={form.name} onChange={change} />
-          </label>
-          <label className="field">Amount per payment (D)
-            <input name="contribution_amount" inputMode="numeric" value={form.contribution_amount} onChange={change} />
-          </label>
-          <label className="field">How often
-            <select name="frequency" value={form.frequency} onChange={change}>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </label>
-          <label className="field">Start date
-            <input name="start_date" type="date" value={form.start_date} onChange={change} />
-          </label>
-          <label className="field">Payout type
-            <select name="payout_type" value={form.payout_type} onChange={change}>
-              <option value="rotating">Rotating (one member per period)</option>
-              <option value="lump_sum">Lump sum (everyone at the end)</option>
-            </select>
-          </label>
-          {isLump && (
-            <>
-              <label className="field">Total payments
-                <input name="total_payments" inputMode="numeric" value={form.total_payments} onChange={change} />
-              </label>
-              <label className="field">Target per member (D)
-                <input name="target_amount" inputMode="numeric" value={form.target_amount} onChange={change} />
-              </label>
-            </>
-          )}
+          <span className={badge(g.status)}>{g.status}</span>
         </div>
-        <button className="btn">Create group</button>
-      </form>
-    </>
-  );
+      ))}
+    </section>
+
+    <form className={card} onSubmit={create}>
+      <h3 className="text-lg font-bold">Create a group</h3>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className={label}>Name
+          <input className={input} name="name" value={form.name} onChange={change} />
+        </label>
+        <label className={label}>Amount per payment (D)
+          <input className={input} name="contribution_amount" inputMode="numeric" value={form.contribution_amount} onChange={change} />
+        </label>
+        <label className={label}>How often
+          <select className={input} name="frequency" value={form.frequency} onChange={change}>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </label>
+        <label className={label}>Start date
+          <input className={input} name="start_date" type="date" value={form.start_date} onChange={change} />
+        </label>
+        <label className={label}>Payout type
+          <select className={input} name="payout_type" value={form.payout_type} onChange={change}>
+            <option value="rotating">Rotating (one member per period)</option>
+            <option value="lump_sum">Lump sum (everyone at the end)</option>
+          </select>
+        </label>
+        {isLump && (
+          <>
+            <label className={label}>Total payments
+              <input className={input} name="total_payments" inputMode="numeric" value={form.total_payments} onChange={change} />
+            </label>
+            <label className={label}>Target per member (D)
+              <input className={input} name="target_amount" inputMode="numeric" value={form.target_amount} onChange={change} />
+            </label>
+          </>
+        )}
+      </div>
+      <button className={btn}>Create group</button>
+    </form>
+  </>
+);
 }

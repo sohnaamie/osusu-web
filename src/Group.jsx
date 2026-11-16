@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
+import { card, input, label, btn, btnGhost, errorBox, row, badge, money } from './ui'
 
 function message(err) {
   return [err.message, ...Object.values(err.errors ?? {}).flat()].filter(Boolean).join(' ');
@@ -13,7 +14,7 @@ export default function Group({ id, onBack }) {
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [pay, setPay] = useState({ group_member_id: '', period_number: '', amount: '', payment_method: 'cash' });
-  const money = (n) => 'D' + Number(n ?? 0).toLocaleString();
+ 
 
   async function load() {
     try {
@@ -62,92 +63,104 @@ export default function Group({ id, onBack }) {
     });
   }
 
-  if (!group) return <p className="muted">{error || 'Loading...'}</p>;
+  if (!group) return <p className="text-slate-500">{error || 'Loading...'}</p>;
 
-  return (
-    <>
-      <button className="btn btn-ghost" style={{ color: 'var(--brand)' }} onClick={onBack}>← Back</button>
+return (
+  <>
+    <button className={`${btnGhost} w-fit text-brand-700`} onClick={onBack}>← Back</button>
 
-      <section className="card">
-        <div className="row" style={{ border: 0, padding: 0 }}>
-          <h2>{group.name}</h2>
-          <span className={`badge ${group.status}`}>{group.status}</span>
-        </div>
-        <div className="stats">
-          <div className="stat"><span className="muted">Type</span><b>{group.payout_type}</b></div>
-          <div className="stat"><span className="muted">Frequency</span><b>{group.frequency}</b></div>
-          <div className="stat"><span className="muted">Each payment</span><b>{money(group.contribution_amount)}</b></div>
-          <div className="stat"><span className="muted">Starts</span><b>{group.start_date?.slice(0, 10)}</b></div>
-        </div>
-        {error && <p className="error">{error}</p>}
-      </section>
-
-      <section className="card">
-        <h3>Members</h3>
-        {members.map((m) => (
-          <div className="row" key={m.id}>
-            <span>{m.user.name} <span className="muted">· {m.number_of_shares} share{m.number_of_shares > 1 ? 's' : ''}</span></span>
-            <span className="badge">{m.role}</span>
+    <section className={card}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">{group.name}</h2>
+        <span className={badge(group.status)}>{group.status}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {[
+          ['Type', group.payout_type],
+          ['Frequency', group.frequency],
+          ['Each payment', money(group.contribution_amount)],
+          ['Starts', group.start_date?.slice(0, 10)],
+        ].map(([k, v]) => (
+          <div key={k} className="rounded-lg bg-slate-50 p-3">
+            <div className="text-xs text-slate-500">{k}</div>
+            <div className="font-semibold">{v}</div>
           </div>
         ))}
-      </section>
+      </div>
+      {error && <p className={errorBox}>{error}</p>}
+    </section>
 
-      <section className="card">
-        <h3>Balances</h3>
-        <div className="table-wrap">
-          <table>
-            <thead><tr><th>Name</th><th>Paid</th><th>Reversed</th><th>Balance</th><th>Expected</th></tr></thead>
-            <tbody>
-              {balances.map((b) => (
-                <tr key={b.member_id}>
-                  <td>{b.name}</td><td>{money(b.paid)}</td><td>{money(b.reversed)}</td>
-                  <td><b>{money(b.balance)}</b></td><td>{money(b.expected)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <section className={card}>
+      <h3 className="text-lg font-bold">Members</h3>
+      {members.map((m) => (
+        <div className={row} key={m.id}>
+          <span>{m.user.name} <span className="text-sm text-slate-500">· {m.number_of_shares} share{m.number_of_shares > 1 ? 's' : ''}</span></span>
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">{m.role}</span>
         </div>
+      ))}
+    </section>
+
+    <section className={card}>
+      <h3 className="text-lg font-bold">Balances</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="text-slate-500">
+            <tr><th className="p-2">Name</th><th className="p-2">Paid</th><th className="p-2">Reversed</th><th className="p-2">Balance</th><th className="p-2">Expected</th></tr>
+          </thead>
+          <tbody>
+            {balances.map((b) => (
+              <tr key={b.member_id} className="border-t border-slate-100">
+                <td className="p-2">{b.name}</td>
+                <td className="p-2">{money(b.paid)}</td>
+                <td className="p-2">{money(b.reversed)}</td>
+                <td className="p-2 font-semibold">{money(b.balance)}</td>
+                <td className="p-2">{money(b.expected)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {isAdmin && (
+      <section className={card}>
+        <h3 className="text-lg font-bold">Admin</h3>
+        {group.status === 'forming' && (
+          <button className={`${btn} w-fit`} onClick={() => run(`/groups/${id}/start`)}>Start group</button>
+        )}
+
+        <form onSubmit={addMember} className="grid gap-3 sm:grid-cols-2">
+          <label className={label}>Add a member by email
+            <input className={input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </label>
+          <button className={`${btn} self-end`}>Add member</button>
+        </form>
+
+        <form onSubmit={recordPayment} className="grid gap-3 sm:grid-cols-2">
+          <h4 className="font-semibold sm:col-span-2">Record a payment</h4>
+          <label className={label}>Member
+            <select className={input} value={pay.group_member_id} onChange={(e) => setPay({ ...pay, group_member_id: e.target.value })}>
+              <option value="">Choose member</option>
+              {members.map((m) => <option key={m.id} value={m.id}>{m.user.name}</option>)}
+            </select>
+          </label>
+          <label className={label}>Period
+            <input className={input} inputMode="numeric" value={pay.period_number} onChange={(e) => setPay({ ...pay, period_number: e.target.value })} />
+          </label>
+          <label className={label}>Amount (D)
+            <input className={input} inputMode="numeric" value={pay.amount} onChange={(e) => setPay({ ...pay, amount: e.target.value })} />
+          </label>
+          <label className={label}>Method
+            <select className={input} value={pay.payment_method} onChange={(e) => setPay({ ...pay, payment_method: e.target.value })}>
+              <option value="cash">Cash</option>
+              <option value="wave">Wave</option>
+              <option value="aps">APS</option>
+            </select>
+          </label>
+          <button className={`${btn} sm:col-span-2`}>Record payment</button>
+        </form>
       </section>
-
-      {isAdmin && (
-        <section className="card">
-          <h3>Admin</h3>
-          {group.status === 'forming' && (
-            <button className="btn" onClick={() => run(`/groups/${id}/start`)}>Start group</button>
-          )}
-
-          <form onSubmit={addMember} className="form-grid">
-            <label className="field">Add a member by email
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </label>
-            <button className="btn" style={{ alignSelf: 'end' }}>Add member</button>
-          </form>
-
-          <form onSubmit={recordPayment} className="form-grid">
-            <h4 style={{ gridColumn: '1 / -1' }}>Record a payment</h4>
-            <label className="field">Member
-              <select value={pay.group_member_id} onChange={(e) => setPay({ ...pay, group_member_id: e.target.value })}>
-                <option value="">Choose member</option>
-                {members.map((m) => <option key={m.id} value={m.id}>{m.user.name}</option>)}
-              </select>
-            </label>
-            <label className="field">Period
-              <input inputMode="numeric" value={pay.period_number} onChange={(e) => setPay({ ...pay, period_number: e.target.value })} />
-            </label>
-            <label className="field">Amount (D)
-              <input inputMode="numeric" value={pay.amount} onChange={(e) => setPay({ ...pay, amount: e.target.value })} />
-            </label>
-            <label className="field">Method
-              <select value={pay.payment_method} onChange={(e) => setPay({ ...pay, payment_method: e.target.value })}>
-                <option value="cash">Cash</option>
-                <option value="wave">Wave</option>
-                <option value="aps">APS</option>
-              </select>
-            </label>
-            <button className="btn" style={{ gridColumn: '1 / -1' }}>Record payment</button>
-          </form>
-        </section>
-      )}
-    </>
-  );
+    )}
+  </>
+);
 }
