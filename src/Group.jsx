@@ -17,6 +17,10 @@ export default function Group({ id, onBack }) {
  
 
   async function load() {
+    if (!Number.isFinite(id)) {
+      setError('Group not found');
+      return;
+    }
     try {
       const [g, m, b, u] = await Promise.all([
         api(`/groups/${id}`),
@@ -29,7 +33,7 @@ export default function Group({ id, onBack }) {
       setBalances(b);
       setMe(u);
     } catch (err) {
-      setError(message(err));
+      setError('Group not found');
     }
   }
 
