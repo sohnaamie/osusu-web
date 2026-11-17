@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from './api';
 import { card, input, label, btn, btnGhost, errorBox, row, badge, money } from './ui'
 
@@ -10,6 +11,7 @@ export default function Group({ id, onBack }) {
   const [group, setGroup] = useState(null);
   const [members, setMembers] = useState([]);
   const [balances, setBalances] = useState([]);
+  const [contributions, setContributions] = useState([]);
   const [me, setMe] = useState(null);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
@@ -22,7 +24,7 @@ export default function Group({ id, onBack }) {
       return;
     }
     try {
-      const [g, m, b, u] = await Promise.all([
+      const [g, m, b, u, c] = await Promise.all([
         api(`/groups/${id}`),
         api(`/groups/${id}/members`),
         api(`/groups/${id}/balances`),
@@ -32,6 +34,11 @@ export default function Group({ id, onBack }) {
       setMembers(m);
       setBalances(b);
       setMe(u);
+      try{
+        setContributions(await api(`/groups/${id}/contributions`));
+      } catch  {
+        setContributions([]);
+      }
     } catch (err) {
       setError('Group not found');
     }
@@ -92,6 +99,30 @@ return (
         ))}
       </div>
       {error && <p className={errorBox}>{error}</p>}
+    </section>
+
+    <section className={card}>
+      <h3 className="text-lg font-bold">Contributions</h3>
+      {contributions.map((c) => (
+        <div className={row} key={c.id}>
+          <span>
+            Period {c.period_number} · {money(c.amount)} · Paid by {c.member?.user?.name ?? 'Unknown'}
+            {c.corrections?.length > 0 && (
+              <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700">
+                Corrected
+              </span>
+            )}
+          </span>
+          {isAdmin && (
+            <Link
+              className={`${btn} w-fit`}
+              to={`/groups/${id}/contributions/${c.id}/correction`}
+            >
+              Correct
+            </Link>
+          )}
+        </div>
+      ))}
     </section>
 
     <section className={card}>

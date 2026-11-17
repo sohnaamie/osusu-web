@@ -1,3 +1,4 @@
+import Correction from "./pages/Correction.jsx";
 import { useState } from 'react';
 import { api } from './api';
 import Groups from './Groups';
@@ -5,7 +6,7 @@ import Group from './Group';
 import { card, input, label, btn, btnGhost, errorBox } from './ui';
 import { Routes, Route, Link } from "react-router-dom";
 import Register from "./pages/Register.jsx";
-import {  Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 
 function GroupPage() {
   const { id } = useParams();
@@ -21,7 +22,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem('token'));
- 
+
 
   async function login(e) {
     setError('');
@@ -52,10 +53,12 @@ export default function App() {
         </header>
         <main className="mx-auto grid max-w-3xl gap-4 p-4">
           <Routes>
-  <Route path="/" element={<Groups onOpen={(id) => navigate(`/groups/${id}`)} />} />
-  <Route path="/groups/:id" element={ <GroupPage /> } />
-  <Route path="*" element={<Navigate to="/" replace />} />
-</Routes>
+            <Route path="/" element={<Groups onOpen={(id) => navigate(`/groups/${id}`)} />} />
+            <Route path="/groups/:id" element={<GroupPage />} />
+            <Route path="/groups/:id/contributions/:contributionId/correction" element={<Correction />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+
         </main>
       </div>
     );
