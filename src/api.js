@@ -1,4 +1,4 @@
-const BASE = 'http://127.0.0.1:8000/api/v1';
+const BASE = '/api/v1';
 
 export async function api(path, { method = 'GET', body } = {}) {
   const token = localStorage.getItem('token');
