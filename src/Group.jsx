@@ -33,6 +33,8 @@ export default function Group({ id, onBack }) {
     period_number: "",
     payment_method: "cash",
   });
+  const [payouts, setPayouts] = useState([]);
+  const [payoutPeriod, setPayoutPeriod] = useState("");
 
   async function load() {
     if (!Number.isFinite(id)) {
@@ -58,6 +60,12 @@ export default function Group({ id, onBack }) {
       }
     } catch {
       setError("Group not found");
+    }
+
+    try {
+      setPayouts(await api(`/groups/${id}/payouts`));
+    } catch {
+      setPayouts([]);
     }
   }
 
@@ -92,6 +100,13 @@ export default function Group({ id, onBack }) {
       period_number: Number(pay.period_number),
       amount: Number(group.contribution_amount),
       payment_method: pay.payment_method,
+    });
+  }
+
+  function recordPayout(e) {
+    e.preventDefault();
+    run(`/groups/${id}/payouts`, {
+      period_number: Number(payoutPeriod),
     });
   }
 
@@ -193,6 +208,20 @@ export default function Group({ id, onBack }) {
           </table>
         </div>
       </section>
+      <section className={card}>
+        <h3 className="text-lg font-bold">Payouts</h3>
+        {payouts.length === 0 && (
+          <p className="text-sm text-slate-500">No payouts yet.</p>
+        )}
+        {payouts.map((p) => (
+          <div className={row} key={p.id}>
+            <span>
+              Period {p.period_number} · {p.member?.user?.name ?? "Unknown"}
+            </span>
+            <span className="font-semibold">{money(p.amount)}</span>
+          </div>
+        ))}
+      </section>
 
       {isAdmin && (
         <section className={card}>
@@ -273,6 +302,23 @@ export default function Group({ id, onBack }) {
               </select>
             </label>
             <button className={`${btn} sm:col-span-2`}>Record payment</button>
+          </form>
+
+          <form onSubmit={recordPayout} className="grid gap-3 sm:grid-cols-2">
+            <h4 className="font-semibold sm:col-span-2">Record a payout</h4>
+            <label className={label}>
+              Period
+              <input
+                className={input}
+                inputMode="numeric"
+                value={payoutPeriod}
+                onChange={(e) => setPayoutPeriod(e.target.value)}
+              />
+              {errors.period_number?.[0] && (
+                <span className={errorBox}>{errors.period_number[0]}</span>
+              )}
+            </label>
+            <button className={`${btn} self-end`}>Record payout</button>
           </form>
         </section>
       )}
